@@ -1,0 +1,31 @@
+version: "3.8"
+services:
+  cmk-server:
+    image: checkmk/check-mk-raw:2.1.0-latest
+    tmpfs:
+     - /opt/omd/sites/cmk/tmp:uid=1000,gid=1000
+    ulimits:
+      nofile: 1024
+    container_name: ${COMPOSE_PROJECT_NAME}_cmk-server
+    volumes:
+      # force local timezone
+      - "/etc/timezone:/etc/timezone:ro"
+      - "/etc/localtime:/etc/localtime:ro"
+      - './data/cmk-server/omd-sites:/omd/sites'
+    ports:
+      - '8080:5000'
+      - '8000:8000'
+    environment:
+      - CMK_SITE_ID=site01
+      - CMK_PASSWORD=Password123
+  cmk-agent:
+    image: eeacms/check-mk-agent
+    container_name: ${COMPOSE_PROJECT_NAME}_cmk-agent
+    volumes:
+      # force local timezone
+      - "/etc/timezone:/etc/timezone:ro"
+      - "/etc/localtime:/etc/localtime:ro"
+    ports:
+      - '6556:6556'
+    depends_on:
+      - cmk-server
